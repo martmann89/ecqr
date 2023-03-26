@@ -70,5 +70,17 @@ def get_solar_data():
     df_train = df[0:365*24]
     df_val = df[365*24:365*24*2]
     df_test = df[365*24*2:365*24*3]
+    print(df_train)
+    print(df_train.shape)
     
     return df_train, df_val, df_test
+
+def get_gas_data():
+    csv_path = './TTF_FM_new.csv'
+    data = pd.read_csv(csv_path, sep=";")
+    df = pd.DataFrame(data, columns=['Price'])
+    index = range(len(df))
+    df['hour_list'] = index
+    df.set_index(df.pop('hour_list'))
+    
+    return df
