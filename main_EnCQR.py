@@ -5,12 +5,12 @@ import data_loaders
 
 
 ############### Hyperparameters
-B = 3                       # size of the ensemble
-alpha = 0.1                 # confidence level            
+B = [1,2,3,4,5]                       # size of the ensemble
+alpha = 0.05                 # confidence level            
 quantiles = [alpha/2,       # quantiles to predict
              0.5,
              1-(alpha/2)] 
-model_type = 'rf'           # use Random Forest as regression model
+model_type = 'lstm'           # use Random Forest as regression model
 n_trees = 10                # number of trees in each rf model
 
 # Store the configuration in a dictionary

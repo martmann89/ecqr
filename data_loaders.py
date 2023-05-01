@@ -53,7 +53,12 @@ def get_solar_data():
     df = df.drop(columns=('Day'))
     df = df.drop(columns=('Hour'))
     df = df.drop(columns=('Date_Time'))
-    
+    df = df.drop(columns=('Temperature_F'))
+    df = df.drop(columns=('Humidity_percent'))
+    df = df.drop(columns=('Sunhour'))
+    df = df.drop(columns=('CloudCover_percent'))
+    df = df.drop(columns=('uvIndex'))
+       
     # create date+hour index 
     date_list = pd.date_range(start='01/01/2017', end='31/07/2020')
     date_list = pd.to_datetime(date_list)
@@ -70,17 +75,30 @@ def get_solar_data():
     df_train = df[0:365*24]
     df_val = df[365*24:365*24*2]
     df_test = df[365*24*2:365*24*3]
-    print(df_train)
-    print(df_train.shape)
+    
+    print(df_train.shape[0] + df_test.shape[0] + df_val.shape[0])
     
     return df_train, df_val, df_test
 
-def get_gas_data():
-    csv_path = './TTF_FM_new.csv'
+def get_gas_data(split_perc, usage_perc=1,version='new',test_days=None):
+    if version == "new":
+        csv_path = './TTF_FM_new.csv'
+    else:
+        csv_path = './TTF_FM_old.csv'
     data = pd.read_csv(csv_path, sep=";")
     df = pd.DataFrame(data, columns=['Price'])
     index = range(len(df))
     df['hour_list'] = index
     df.set_index(df.pop('hour_list'))
+    if test_days is not None:
+        n = len(df)-test_days
+        assert(split_perc[0] + split_perc[1] == 1)
+        df_test = df[len(df) - test_days:]
+    else:
+        n = int(len(df)*usage_perc)
+        df_test = df[int((split_perc[0] + split_perc[1])*n):n]
+    df_train = df[0:int(split_perc[0]*n)]
+    df_val = df[int(split_perc[0]*n):int((split_perc[0] + split_perc[1])*n)]
     
-    return df
+    
+    return df_train, df_val, df_test

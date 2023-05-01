@@ -149,3 +149,7 @@ class xy_scaler:
         data_r = self.y_scaler.inverse_transform(data_r)
         data = data_r.reshape(data.shape[0], data.shape[1])
         return data
+    
+    def inverse_transform_OneDim(self,data):
+        return self.y_scaler.inverse_transform(data)
+    

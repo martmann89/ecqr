@@ -32,7 +32,7 @@ def EnCQR(train_data, val_x, val_y, test_x, test_y, P):
     ensemble_models = []
     for b in range(P['B']):
         f_hat_b = regression_model(P)
-        f_hat_b.fit(train_data[index[b]][0], train_data[index[b]][1], val_x, val_y)
+        history = f_hat_b.fit(train_data[index[b]][0], train_data[index[b]][1], val_x, val_y,epochs=100000, patience=50, verbose=0, start_from_epoch=20, learning_rate=P['learning_rate'])
         ensemble_models.append(f_hat_b)
         
         # Leave-one-out predictions for each Sb
@@ -52,7 +52,7 @@ def EnCQR(train_data, val_x, val_y, test_x, test_y, P):
     epsilon_low = []
     epsilon_hi=[]
     for b in range(P['B']):
-        e_low, e_high = utils.asym_nonconformity(label=train_data[b][1], 
+        e_low, e_high = utils.asym_nonconformity(label=train_data[b][1],            # eq. (8)
                                                   low=f_hat_b_agg_low[:,:,b], 
                                                   high=f_hat_b_agg_high[:,:,b])
         epsilon_low.append(e_low)
@@ -63,16 +63,16 @@ def EnCQR(train_data, val_x, val_y, test_x, test_y, P):
     # Construct PIs for test data
     f_hat_t_batch = np.zeros((test_y.shape[0], test_y.shape[1], 3, P['B']))
     for b, model_b in enumerate(ensemble_models):
-        f_hat_t_batch[:,:,:,b] = model_b.transform(test_x)
-    PI  = np.mean(f_hat_t_batch,  axis=-1) 
+        f_hat_t_batch[:,:,:,b] = model_b.transform(test_x)                          
+    PI  = np.mean(f_hat_t_batch,  axis=-1)                                          
     
     # Conformalize prediction intervals on the test data
     conf_PI = np.zeros((test_y.shape[0], test_y.shape[1], 3))
     conf_PI[:,:,1] = PI[:,:,1]
     for i in range(test_y.shape[0]):   
-        e_quantile_lo = np.quantile(epsilon_low, 1-P['alpha']/2)
+        e_quantile_lo = np.quantile(epsilon_low, 1-P['alpha']/2)                    #   eq. (9)
         e_quantile_hi = np.quantile(epsilon_hi, 1-P['alpha']/2)
-        conf_PI[i,:,0] = PI[i,:,0] - e_quantile_lo
+        conf_PI[i,:,0] = PI[i,:,0] - e_quantile_lo                                  #   eq. (9)
         conf_PI[i,:,2] = PI[i,:,2] + e_quantile_hi
     
         # update epsilon with the last s steps
@@ -84,4 +84,4 @@ def EnCQR(train_data, val_x, val_y, test_x, test_y, P):
         epsilon_low = np.append(epsilon_low, e_lo)
         epsilon_hi = np.append(epsilon_hi, e_hi)
         
-    return PI, conf_PI
+    return PI, conf_PI, history

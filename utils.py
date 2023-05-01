@@ -1,19 +1,27 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def compute_coverage_len(y_test, y_lower, y_upper, verbose=False, eta=30, mu=0.9):
+def compute_coverage_len(y_test, y_lower, y_upper, scaler, verbose=False, eta=30, mu=0.9):
     """ 
     Compute average coverage and length of prediction intervals
     """
+   
     in_the_range = np.sum((y_test >= y_lower) & (y_test <= y_upper))
+    
     coverage = in_the_range / np.prod(y_test.shape)
+    
     avg_length = np.mean(abs(y_upper - y_lower))
     avg_length = avg_length/(y_test.max()-y_test.min())
+    
+    y_lower = np.reshape(y_lower,[len(y_lower),1])
+    y_upper = np.reshape(y_upper,[len(y_upper),1])
+    avg_length_transformed = np.mean(abs(scaler.inverse_transform_y(y_upper) - scaler.inverse_transform_y(y_lower)))
+    # avg_length_trans_normed = avg_length_transformed / (y_test.max() - y_test.min())
     cwc = (1-avg_length)*np.exp(-eta*(coverage-mu)**2)
     if verbose==True:
-        print(f"PI coverage: {coverage*100:.1f}%, PI avg. length: {avg_length:.3f}, CWC: {cwc:.3f}")
+        print(f"PI coverage: {coverage*100:.4f}%, PI avg. length: {avg_length:.4f}, CWC: {cwc:.4f}")
     else:
-        return coverage, avg_length, cwc
+        return coverage, avg_length, avg_length_transformed, cwc
 
 
 def asym_nonconformity(label, low, high):
@@ -24,11 +32,10 @@ def asym_nonconformity(label, low, high):
     error_low = low - label
     return error_low, error_high
 
-
 def plot_PIs(true, pred_mean, PI_low=None, PI_hi=None, 
              conf_PI_low=None, conf_PI_hi=None, 
              x_lims=None, scaler=None, title=None,
-             label_pi=None):
+             label_pi=None,save_path=None):
     
     if scaler:
         true = scaler.inverse_transform_y(true)
@@ -75,11 +82,12 @@ def plot_PIs(true, pred_mean, PI_low=None, PI_hi=None,
     
     if title is not None:
         plt.title(title)
+    if save_path is None:
+        plt.show()
+    else:
+        plt.savefig(save_path)
     
-    plt.show()
-    
-    
-def plot_history(history):
+def plot_history(history, alpha):
     
     hist_dict = history.history
     
@@ -92,7 +100,7 @@ def plot_history(history):
     axs[0].plot(hist_dict['val_loss'], label='val_loss', color='k', linestyle='dashed')
     axs[0].legend()
     
-    axs[1].axhline(y=0.9, color='r', linestyle='-')
+    axs[1].axhline(y=(1 - alpha), color='r', linestyle='-')
     axs[1].plot(hist_dict['pi_cov'], label='tr_pi_cov', color=plt.cm.tab10(0))
     axs[1].plot(hist_dict['val_pi_cov'], label='val_pi_cov', color=plt.cm.tab10(0), linestyle='dashed')
     axs[1].legend(loc='lower right')
@@ -104,4 +112,8 @@ def plot_history(history):
     plt.tight_layout()
     plt.show()
     
-    
+def plot_ts(dfs):
+    plt.figure(figsize=(12, 3.5))
+    for i in range(len(dfs)):
+        plt.plot(np.array(dfs[i].index),dfs[i]['Price'])
+    plt.show()
