@@ -54,7 +54,7 @@ if P['model_type'] == 'tcn':
     colnames_stats = ['alpha', 'batch_size', 'kernel_size', 'dilations','n_filters', 'l2_lambda', 'learning_rate','epochs', 'time_steps_in', 'coverage', 'avg_width','avg_width_transformed', 'cwc','coverage_conf', 'avg_width_conf', 'avg_width_transformed_conf', 'cwc_conf']# ['Nof Learners', 'alpha', 'batch_size', 'units', 'n_layers', 'l2_lambda', 'learning_rate','epochs', 'time_steps_in', 'coverage', 'avg_width','avg_width_transformed', 'cwc','coverage_conf', 'avg_width_conf', 'avg_width_transformed_conf', 'cwc_conf']
 
 colnames_result = ['low','high','mean']
-base_path = './predictions/165d_TTF_FM_old/tcn/'
+base_path = './predictions/165d_TTF_FM_old/tcn2/'
 if not os.path.exists(base_path):
     os.makedirs(base_path)
 
